@@ -9,7 +9,8 @@ import SwiftUI
 
 struct SavedRouteCardView: View {
     let route: SavedRoute
-    var onFavoriteToggle: () -> Void
+    var showFavoriteButton: Bool = true
+    var onFavoriteToggle:  (() -> Void)? = nil 
     
     var body: some View {
         
@@ -20,9 +21,16 @@ struct SavedRouteCardView: View {
                 
             }
             Spacer()
-            Button(action: {onFavoriteToggle()}) {
-                Image(systemName: route.isFavorite ? "star.fill" : "star")
+            
+            if showFavoriteButton {
+                Button(action: {
+                    onFavoriteToggle?()
+                }) {
+                    Image(systemName: route.isFavorite ? "star.fill" : "star")
+                        .foregroundColor(route.isFavorite ? .gray: .gray)
+                }
             }
+            
         }
             .padding()
             .background(Color(.systemGray6))

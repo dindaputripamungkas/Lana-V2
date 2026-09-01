@@ -8,21 +8,24 @@
 import Foundation
 import Observation
 
+@Observable
 class SavedRoutesController {
-    var selectedOption = 0
     //mock data
     var routes: [SavedRoute] = [
         SavedRoute(title: "Loop Route 1", distance: 15.2, duration: 41, isFavorite: true),
         SavedRoute(title: "Downtown Sprint", distance: 8.5, duration: 25, isFavorite: false),
         SavedRoute(title: "Riverside Trail", distance: 22.0, duration: 60, isFavorite: true)
     ]
-    var searchText = ""
     
     func toggleFavorite(for route: SavedRoute) {
         if let index = routes.firstIndex(where: { $0.id == route.id }) {
             routes[index].isFavorite.toggle()
         }
     }
+    
+    var selectedOption = 0
+    
+    var searchText = ""
     
     var filteredRoutes: [SavedRoute] {
         let tabFiltered =
