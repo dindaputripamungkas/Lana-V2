@@ -12,6 +12,10 @@ struct HomeView: View {
     @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
     @State private var locationManager = LocationManager()
     @State private var hasZoomed = false
+    @State private var viewModel = CreateRouteViewModel(
+        service: PreviewRouteGenerationService()
+    )
+
     
     var body: some View {
         NavigationStack {
@@ -20,33 +24,47 @@ struct HomeView: View {
                     UserAnnotation()
                 }
                 
-                
                 VStack(alignment: .leading) {
-//                    VStack(alignment: .leading) {
-//                        Text("Design a new route")
-//                            .font(.headline)
-//                        Text("Ready for a new challenge? Set a new distance and craft another perfect ride")
-//                            .font(.subheadline)
-//                        NavigationLink {
-//                            CreateRouteView()
-//                        } label: {
-//                            Text("Create a new route")
-//                                .fontWeight(.semibold)
-//                                .frame(maxWidth: .infinity)
-//                                .padding(.vertical, 12)
-//                                .background(Color(red: 0.59, green: 0.29, blue: 0.28))
-//                                .foregroundStyle(.white)
-//                                .clipShape(RoundedRectangle(cornerRadius: 10))
-//                        }
-//                        .padding(.top, 6)
-//                    }
-//                    .padding()
-//                    .background(Color(.systemGray6))
-//                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    Spacer()
+                    @Bindable var viewModel = viewModel
+
+                    RouteTypeSelector(
+                        selectedRouteType: $viewModel.selectedRouteType
+                    )
+
+                    RouteInputField(
+                        text: $viewModel.distanceText
+                    )
+
+                    if viewModel.selectedRouteType == .pointToPoint {
+                        WaypointInputView(
+                            startLocation: $viewModel.startLocation,
+                            finishLocation: $viewModel.finishLocation
+                        )
+                    }
+
+                    PrimaryRouteButton(
+                        title: "Create Route",
+                        isEnabled: true,
+                        action: {
+                            viewModel.generateOptions()
+                        }
+                    )
+
+                    
                 }
                 .padding()
                 .navigationTitle("Routes")
                 .toolbarTitleDisplayMode(.inlineLarge)
+                .toolbar {
+                    ToolbarItem (placement: .topBarTrailing){
+                        NavigationLink{
+                            SavedRoutesView()
+                        } label: {
+                            Image(systemName: "bookmark")
+                        }
+                    }
+                }
             }
             .onAppear {
                 hasZoomed = false
@@ -54,7 +72,6 @@ struct HomeView: View {
                 zoomToUser()
             }
             .onChange(of: locationManager.userLocation) { _, _ in
-                // Zooms in when GPS first acquires coordinates
                 if !hasZoomed {
                     zoomToUser()
                 }
@@ -69,7 +86,7 @@ struct HomeView: View {
             cameraPosition = .camera(
                 MapCamera(
                     centerCoordinate: location.coordinate,
-                    distance: 1000 // 1000m altitude = street/neighborhood level zoom
+                    distance: 1000
                 )
             )
         }
