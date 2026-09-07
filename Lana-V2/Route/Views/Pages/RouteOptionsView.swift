@@ -10,8 +10,8 @@ import SwiftUI
 struct RouteOptionsView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let options: [GeneratedRouteOption]
-    let onSelect: (GeneratedRouteOption) -> Void
+    let options: [Route]
+    let onSelect: (Route) -> Void
 
     var body: some View {
         ZStack {

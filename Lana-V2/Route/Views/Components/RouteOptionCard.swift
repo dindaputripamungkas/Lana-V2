@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RouteOptionCard: View {
-    let option: GeneratedRouteOption
+    let option: Route
     let action: () -> Void
 
     private let accentColor = Color(red: 0.59, green: 0.29, blue: 0.28)
@@ -38,7 +38,7 @@ struct RouteOptionCard: View {
                     }
                 }
 
-                Text("\(option.distanceKm, specifier: "%.1f") km | \(option.estimatedDurationMinutes) mins | \(option.intersections) Intersections")
+                Text("\(option.distanceKm, specifier: "%.1f") km | \(option.durationMinutes) mins | \(option.intersections) Intersections")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundStyle(accentColor)
@@ -57,11 +57,10 @@ struct RouteOptionCard: View {
 
 #Preview {
     RouteOptionCard(
-        option: GeneratedRouteOption(
+        option: Route(
             title: "Loop Route 15K",
             distanceKm: 15.1,
-            estimatedDurationMinutes: 34,
-            estimatedTimeText: "00:34:00",
+            durationMinutes: 34,
             intersections: 10,
             badgeTitle: "Closest to Target Distance",
             routeKindTitle: "Loop Route",

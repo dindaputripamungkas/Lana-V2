@@ -10,7 +10,7 @@ import SwiftUI
 struct RouteDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let option: GeneratedRouteOption
+    let option: Route
 
     private let accentColor = Color(red: 0.59, green: 0.29, blue: 0.28)
     private let secondaryButtonColor = Color(red: 0.80, green: 0.58, blue: 0.58)
@@ -107,10 +107,10 @@ struct RouteDetailView: View {
                 )
             }
 
-            statBlock(
-                title: "Estimated Time",
-                value: option.estimatedTimeText
-            )
+//            statBlock(
+//                title: "Estimated Time",
+//                value: option.durationMinutes
+//            )
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -221,11 +221,10 @@ struct RouteDetailView: View {
 
 #Preview {
     RouteDetailView(
-        option: GeneratedRouteOption(
+        option: Route(
             title: "Loop Route 15K",
             distanceKm: 15.1,
-            estimatedDurationMinutes: 34,
-            estimatedTimeText: "00:34:00",
+            durationMinutes: 34,
             intersections: 10,
             badgeTitle: "Closest to Target Distance",
             routeKindTitle: "Loop Route",

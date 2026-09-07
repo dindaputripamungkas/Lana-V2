@@ -34,7 +34,7 @@ struct SavedRoutesView: View {
                 ScrollView{
                     LazyVStack{
                         ForEach(controller.filteredRoutes) { route in
-                            NavigationLink(destination: RouteDetailView(route: route)) {
+                            NavigationLink(destination: RouteDetailView(option: route)) {
                                 SavedRouteCardView(route: route) {
                                     controller.toggleFavorite(for: route)
                                 }

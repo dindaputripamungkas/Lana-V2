@@ -11,13 +11,13 @@ import Observation
 @Observable
 class SavedRoutesController {
     //mock data
-    var routes: [SavedRoute] = [
-        SavedRoute(title: "Loop Route 1", distance: 15.2, duration: 41, isFavorite: true),
-        SavedRoute(title: "Downtown Sprint", distance: 8.5, duration: 25, isFavorite: false),
-        SavedRoute(title: "Riverside Trail", distance: 22.0, duration: 60, isFavorite: true)
+    var routes: [Route] = [
+        Route(title: "Loop Route 1", distanceKm: 15.2, durationMinutes: 41, isFavorite: true),
+        Route(title: "Downtown Sprint", distanceKm: 8.5, durationMinutes: 25, isFavorite: false),
+        Route(title: "Riverside Trail", distanceKm: 22.0, durationMinutes: 60, isFavorite: true)
     ]
     
-    func toggleFavorite(for route: SavedRoute) {
+    func toggleFavorite(for route: Route) {
         if let index = routes.firstIndex(where: { $0.id == route.id }) {
             routes[index].isFavorite.toggle()
         }
@@ -27,7 +27,7 @@ class SavedRoutesController {
     
     var searchText = ""
     
-    var filteredRoutes: [SavedRoute] {
+    var filteredRoutes: [Route] {
         let tabFiltered =
         selectedOption == 1 ? routes.filter({$0.isFavorite}) : routes
         if searchText.isEmpty {

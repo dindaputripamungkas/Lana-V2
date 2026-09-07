@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SavedRouteCardView: View {
-    let route: SavedRoute
+    let route: Route
     var showFavoriteButton: Bool = true
     var onFavoriteToggle:  (() -> Void)? = nil 
     
@@ -17,7 +17,7 @@ struct SavedRouteCardView: View {
         HStack {
             VStack(alignment: .leading){
                 Text (route.title)
-                Text("\(String(format: "%1.f", route.distance)) km | \(String(format: "%1.f", route.duration)) min")
+                Text("\(String(format: "%1.f", route.distanceKm)) km | \(String(format: "%1.f", route.durationMinutes)) min")
                 
             }
             Spacer()
@@ -41,10 +41,10 @@ struct SavedRouteCardView: View {
 
 #Preview {
     SavedRouteCardView(
-        route: SavedRoute(
+        route: Route(
             title: "Loop Route 1",
-            distance: 15.2,
-            duration: 41,
+            distanceKm: 15.2,
+            durationMinutes: 41,
             isFavorite: true
         ),
         onFavoriteToggle: {

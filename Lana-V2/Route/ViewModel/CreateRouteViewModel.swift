@@ -14,8 +14,8 @@ final class CreateRouteViewModel {
     var distanceText: String = ""
     var startLocation: String = ""
     var finishLocation: String = ""
-    var generatedOptions: [GeneratedRouteOption] = []
-    var selectedOption: GeneratedRouteOption?
+    var generatedOptions: [Route] = []
+    var selectedOption: Route?
     var isShowingRouteOptions = false
     var errorMessage: String?
     

@@ -11,5 +11,5 @@ protocol RouteGenerating {
         routeType: RouteType,
         startLocation: String?,
         finishLocation: String?
-    ) -> [GeneratedRouteOption]
+    ) -> [Route]
 }
