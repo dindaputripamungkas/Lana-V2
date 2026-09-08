@@ -20,11 +20,7 @@ struct PrimaryRouteButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
                 .background(
-                    Color(
-                        red: 0.59,
-                        green: 0.29,
-                        blue: 0.28
-                    )
+                    Color(.secondarySystemBackground)
                 )
                 .clipShape(
                     RoundedRectangle(cornerRadius: 14)

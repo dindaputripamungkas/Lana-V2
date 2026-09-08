@@ -35,11 +35,18 @@ struct SavedRoutesView: View {
                     LazyVStack{
                         ForEach(controller.filteredRoutes) { route in
                             NavigationLink(destination: RouteDetailView(option: route)) {
-                                SavedRouteCardView(route: route) {
-                                    controller.toggleFavorite(for: route)
-                                }
+                                RouteCardView(
+                                    route: route,
+                                    showFavoriteButton: true,
+                                    showBadge: false,
+                                    showMapPreview: true,
+                                    onFavoriteToggle: {
+                                        controller.toggleFavorite(for: route)
+                                    }
+                                )
                             }
                             .buttonStyle(.plain)
+
                         }
 
                     }

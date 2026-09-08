@@ -24,9 +24,12 @@ struct RouteOptionsView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(options) { option in
-                            RouteOptionCard(option: option) {
-                                onSelect(option)
-                            }
+                            RouteCardView(
+                                route: option,
+                                showBadge: true,
+                                showMapPreview: true,
+                                onSelect: { onSelect(option) }
+                            )
                         }
                     }
                     .padding(.horizontal, 20)
