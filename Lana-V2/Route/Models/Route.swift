@@ -20,4 +20,10 @@ struct Route: Identifiable, Hashable {
     var windSpeed: String = "13 km/h"
     var overview: String = ""
     var isFavorite: Bool = false
+    var startLocation: RouteLocation? = nil
+    var finishLocation: RouteLocation? = nil
+    var transportMode: RouteTransportMode? = nil
+    var coordinates: [RouteCoordinate] = []
+    var instructions: [String] = []
+    var isPreview: Bool = false
 }
