@@ -8,8 +8,13 @@
 import CoreLocation
 import Foundation
 
-enum LocationRequestError: LocalizedError {
-    case denied, restricted, approximate, unavailable, timedOut, busy, missingDescription
+enum LocationRequestError: LocalizedError, Equatable {
+    case denied
+    case restricted
+    case unavailable
+    case timedOut
+    case busy
+    case missingDescription
 
     var errorDescription: String? {
         switch self {
@@ -17,10 +22,8 @@ enum LocationRequestError: LocalizedError {
             return "Location access is disabled. Choose a place manually or open Settings."
         case .restricted:
             return "Location access is restricted. Choose a place manually."
-        case .approximate:
-            return "Precise location is off. Choose a place manually or enable it in Settings."
         case .unavailable:
-            return "A recent, accurate location is unavailable. Try again or choose a place."
+            return "A recent location is unavailable. Try again or choose a place."
         case .timedOut:
             return "Getting your location timed out. Try again or choose a place."
         case .busy:
@@ -34,9 +37,9 @@ enum LocationRequestError: LocalizedError {
 @MainActor
 final class LocationService: NSObject, LocationProviding, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
-    private var pending: ((Result<RouteLocation, Error>) -> Void)?
-    private var timeout: Task<Void, Never>?
-    private var isWaitingForFix = false
+    private var continuation: CheckedContinuation<RouteLocation, Error>?
+    private var timeoutTask: Task<Void, Never>?
+    private var isRequestingLocation = false
 
     override init() {
         super.init()
@@ -44,38 +47,89 @@ final class LocationService: NSObject, LocationProviding, CLLocationManagerDeleg
         manager.desiredAccuracy = kCLLocationAccuracyBest
     }
 
-    func requestCurrentLocation(
-        completion: @escaping (Result<RouteLocation, Error>) -> Void
-    ) {
-        guard pending == nil else {
-            completion(.failure(LocationRequestError.busy))
-            return
+    func requestCurrentLocation() async throws -> RouteLocation {
+        guard continuation == nil else {
+            throw LocationRequestError.busy
         }
         guard let description = Bundle.main.object(
             forInfoDictionaryKey: "NSLocationWhenInUseUsageDescription"
         ) as? String, !description.isEmpty else {
-            completion(.failure(LocationRequestError.missingDescription))
-            return
+            throw LocationRequestError.missingDescription
         }
-        pending = completion
+
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                self.continuation = continuation
+                proceedWithAuthorization()
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in
+                self?.cancel()
+            }
+        }
+    }
+
+    func cancel() {
+        finish(.failure(CancellationError()))
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         proceedWithAuthorization()
     }
 
+    func locationManager(
+        _ manager: CLLocationManager,
+        didUpdateLocations locations: [CLLocation]
+    ) {
+        guard continuation != nil else { return }
+
+        let recentLocation = locations.filter {
+            $0.horizontalAccuracy >= 0
+                && abs($0.timestamp.timeIntervalSinceNow) <= 30
+                && CLLocationCoordinate2DIsValid($0.coordinate)
+        }.max { $0.timestamp < $1.timestamp }
+
+        guard let location = recentLocation else {
+            finish(.failure(LocationRequestError.unavailable))
+            return
+        }
+
+        finish(.success(RouteLocation(
+            name: "Current Location",
+            coordinate: RouteCoordinate(
+                latitude: location.coordinate.latitude,
+                longitude: location.coordinate.longitude
+            )
+        )))
+    }
+
+    func locationManager(
+        _ manager: CLLocationManager,
+        didFailWithError error: Error
+    ) {
+        if (error as? CLError)?.code == .denied {
+            finish(.failure(LocationRequestError.denied))
+        } else {
+            finish(.failure(error))
+        }
+    }
+
     private func proceedWithAuthorization() {
-        guard pending != nil else { return }
+        guard continuation != nil else { return }
+
         switch manager.authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
         case .authorizedAlways, .authorizedWhenInUse:
-            guard manager.accuracyAuthorization == .fullAccuracy else {
-                finish(.failure(LocationRequestError.approximate))
-                return
-            }
-            guard !isWaitingForFix else { return }
-            isWaitingForFix = true
-            timeout = Task { [weak self] in
-                do { try await Task.sleep(for: .seconds(20)) }
-                catch { return }
+            guard !isRequestingLocation else { return }
+            isRequestingLocation = true
+            timeoutTask?.cancel()
+            timeoutTask = Task { [weak self] in
+                do {
+                    try await Task.sleep(for: .seconds(20))
+                } catch {
+                    return
+                }
                 self?.finish(.failure(LocationRequestError.timedOut))
             }
             manager.requestLocation()
@@ -88,49 +142,19 @@ final class LocationService: NSObject, LocationProviding, CLLocationManagerDeleg
         }
     }
 
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        proceedWithAuthorization()
-    }
-
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard pending != nil else { return }
-        let recent = locations.filter {
-            $0.horizontalAccuracy >= 0 && $0.horizontalAccuracy <= 100
-                && abs($0.timestamp.timeIntervalSinceNow) <= 30
-                && CLLocationCoordinate2DIsValid($0.coordinate)
-        }.max { $0.timestamp < $1.timestamp }
-        guard let location = recent else {
-            finish(.failure(LocationRequestError.unavailable))
-            return
-        }
-        finish(.success(RouteLocation(
-            name: "Current Location",
-            coordinate: RouteCoordinate(
-                latitude: location.coordinate.latitude,
-                longitude: location.coordinate.longitude
-            )
-        )))
-    }
-
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        if (error as? CLError)?.code == .denied {
-            finish(.failure(LocationRequestError.denied))
-        } else {
-            finish(.failure(error))
-        }
-    }
-
-    func cancel() {
-        finish(.failure(CancellationError()))
-    }
-
     private func finish(_ result: Result<RouteLocation, Error>) {
-        guard let completion = pending else { return }
-        pending = nil
-        isWaitingForFix = false
-        timeout?.cancel()
-        timeout = nil
-        manager.stopUpdatingLocation()
-        completion(result)
+        guard let continuation else { return }
+
+        self.continuation = nil
+        isRequestingLocation = false
+        timeoutTask?.cancel()
+        timeoutTask = nil
+
+        switch result {
+        case .success(let location):
+            continuation.resume(returning: location)
+        case .failure(let error):
+            continuation.resume(throwing: error)
+        }
     }
 }

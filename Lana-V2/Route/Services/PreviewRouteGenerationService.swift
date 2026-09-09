@@ -7,57 +7,62 @@
 
 import Foundation
 
-struct PreviewRouteGenerationService : RouteGenerating {
-    func generateOptions(
-        targetDistanceKm: Double,
-        routeType: RouteType,
-        startLocation: String?,
-        finishLocation: String?
-    ) -> [Route] {
-        let routeKindTitle = routeType == .loop ? "Loop Route" : "A to B Route"
-        let warningMessage = routeType == .loop
-            ? "Cycling road data is not available in your region"
-            : "Route preview uses your start and finish point"
+@MainActor
+struct PreviewRouteGenerationService: RouteGenerating {
+    func generateBestRoutes(
+        for request: RouteGenerationRequest
+    ) async throws -> [Route] {
+        try Task.checkCancellation()
 
-        return [
+        let finish = request.routeType == .loop
+            ? request.start
+            : request.finish ?? request.start
+
+        return [0.1, 0.4, -0.2].enumerated().map { index, distanceOffset in
             Route(
-                title: routeType == .loop ? "Loop Route 15K" : "A to B Balanced Route",
-                distanceKm: targetDistanceKm + 0.1,
-                durationMinutes: 34,
-                intersections: 10,
-                badgeTitle: "Closest to Target Distance",
-                routeKindTitle: routeKindTitle,
-                warningMessage: warningMessage,
-                currentWeather: "26°C",
-                windSpeed: "13 km/h",
-                overview: "A balanced route option that stays close to your target distance while keeping the path simple for a first preview."
-            ),
-            Route(
-                title: routeType == .loop ? "Loop Route 2" : "A to B Scenic Route",
-                distanceKm: targetDistanceKm + 0.4,
-                durationMinutes: 38,
-                intersections: 12,
-                badgeTitle: nil,
-                routeKindTitle: routeKindTitle,
-                warningMessage: warningMessage,
-                currentWeather: "27°C",
-                windSpeed: "11 km/h",
-                overview: "A slightly longer option with more turns, useful when you want a calmer route shape for the dummy review flow."
-            ),
-            Route(
-                title: routeType == .loop ? "Loop Quick Route" : "A to B Quick Route",
-                distanceKm: max(targetDistanceKm - 0.2, 0.1),
-                durationMinutes: 31,
-                intersections: 8,
-                badgeTitle: "Fastest",
-                routeKindTitle: routeKindTitle,
-                warningMessage: warningMessage,
-                currentWeather: "26°C",
-                windSpeed: "15 km/h",
-                overview: "The fastest dummy option with fewer intersections, made to help the detail screen show meaningful route data."
+                title: "\(request.routeType.title) Option \(index + 1)",
+                routeType: request.routeType,
+                targetDistanceKm: request.targetDistanceKm,
+                distanceKm: max(request.targetDistanceKm + distanceOffset, 0.1),
+                durationMinutes: 34 + (index * 3),
+                intersections: 8 + (index * 2),
+                badgeTitle: index == 0 ? "Closest to Target" : nil,
+                overview: "A preview route generated from the current request.",
+                startLocation: request.start,
+                finishLocation: finish,
+                routingModeUsed: .cycling,
+                coordinates: [
+                    request.start.coordinate,
+                    finish.coordinate
+                ],
+                instructions: ["Start riding", "Continue to the destination"],
+                isPreview: true
             )
-        ]
+        }
     }
+
+    func cancel() {}
 }
 
+@MainActor
+struct PreviewPlaceSearchService: PlaceSearching {
+    func search(_ query: String) async throws -> [RouteLocation] {
+        try Task.checkCancellation()
+        return [
+            Route.preview.startLocation,
+            Route.preview.finishLocation
+        ].compactMap { $0 }
+    }
 
+    func cancel() {}
+}
+
+@MainActor
+struct PreviewLocationService: LocationProviding {
+    func requestCurrentLocation() async throws -> RouteLocation {
+        try Task.checkCancellation()
+        return Route.preview.startLocation!
+    }
+
+    func cancel() {}
+}

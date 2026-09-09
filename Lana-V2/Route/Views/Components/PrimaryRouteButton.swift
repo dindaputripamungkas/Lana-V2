@@ -10,29 +10,31 @@ import SwiftUI
 struct PrimaryRouteButton: View {
     let title: String
     let isEnabled: Bool
+    var isLoading = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(.headline)
-                .foregroundStyle(.white)
+            HStack(spacing: 10) {
+                if isLoading {
+                    ProgressView()
+                        .tint(.black)
+                }
+
+                Text(title)
+                    .font(.headline)
+            }
+                .foregroundStyle(
+                    isEnabled ? Color.black : RouteTheme.secondaryText
+                )
                 .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(
-                    Color(
-                        red: 0.59,
-                        green: 0.29,
-                        blue: 0.28
-                    )
-                )
-                .clipShape(
-                    RoundedRectangle(cornerRadius: 14)
-                )
+                .frame(minHeight: 32)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        .controlSize(.large)
+        .tint(.white)
         .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.5)
     }
 }
 
@@ -51,4 +53,6 @@ struct PrimaryRouteButton: View {
         )
     }
     .padding()
+    .background(RouteTheme.background)
+    .preferredColorScheme(.dark)
 }

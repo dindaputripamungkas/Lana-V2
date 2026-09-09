@@ -5,233 +5,234 @@
 //  Created by Imam on 31/08/26.
 //
 
+import MapKit
 import SwiftUI
 
 struct RouteDetailView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(SavedRoutesController.self) private var savedRoutes
 
     let option: Route
 
-    private let accentColor = Color(red: 0.59, green: 0.29, blue: 0.28)
-    private let secondaryButtonColor = Color(red: 0.80, green: 0.58, blue: 0.58)
-
     var body: some View {
-        ZStack {
-            Color(.systemGroupedBackground)
-                .ignoresSafeArea()
+        List {
+            Section {
+                routeMap
+                    .listRowInsets(EdgeInsets())
 
-            VStack(spacing: 0) {
-                headerView
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        routeStatusView
-                        mainStatsCard
-                        weatherCard
-                        overviewCard
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-                    .padding(.bottom, 120)
-                }
-
-                actionButtons
-            }
-        }
-        .navigationBarBackButtonHidden(true)
-    }
-
-    private var headerView: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .frame(width: 40, height: 40)
-                    .background(.white)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            Text("Route Details")
-                .font(.headline)
-                .fontWeight(.semibold)
-
-            Spacer()
-
-            Color.clear
-                .frame(width: 40, height: 40)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
-    }
-
-    private var routeStatusView: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Label(option.warningMessage, systemImage: "info.circle")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-
-            Spacer(minLength: 12)
-
-            Label(option.routeKindTitle, systemImage: "arrow.triangle.2.circlepath")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(accentColor)
-                .clipShape(Capsule())
-        }
-    }
-
-    private var mainStatsCard: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack(alignment: .top) {
-                statBlock(
-                    title: "Distance",
-                    value: String(format: "%.1f km", option.distanceKm)
-                )
-
-                Spacer()
-
-                statBlock(
-                    title: "Intersections",
-                    value: "\(option.intersections)"
-                )
+                routeIdentity
             }
 
-//            statBlock(
-//                title: "Estimated Time",
-//                value: option.durationMinutes
-//            )
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(
-            RoundedRectangle(cornerRadius: 16)
-        )
-    }
-
-    private var weatherCard: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Current Weather")
+            if !option.warningMessage.isEmpty {
+                Section {
+                    Label(
+                        option.warningMessage,
+                        systemImage: "info.circle.fill"
+                    )
                     .font(.subheadline)
-                    .foregroundStyle(.primary)
-
-                Label(option.currentWeather, systemImage: "cloud.sun.fill")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(accentColor)
+                    .foregroundStyle(RouteTheme.accent)
+                }
             }
 
-            Spacer()
+            Section("Summary") {
+                summaryRow(
+                    "Distance",
+                    value: String(format: "%.1f km", option.distanceKm),
+                    icon: "ruler"
+                )
+                summaryRow("Target gap", value: gapText, icon: "scope")
+                summaryRow(
+                    "Estimated time",
+                    value: option.durationText,
+                    icon: "clock"
+                )
+                summaryRow(
+                    "Maneuvers",
+                    value: "\(option.intersections)",
+                    icon: "arrow.turn.up.right"
+                )
+            }
 
-            statBlock(
-                title: "Wind",
-                value: option.windSpeed
+            if !option.overview.isEmpty {
+                Section("Overview") {
+                    Text(option.overview)
+                        .font(.subheadline)
+                        .foregroundStyle(RouteTheme.secondaryText)
+                }
+            }
+
+            if !option.instructions.isEmpty {
+                Section("Directions") {
+                    ForEach(
+                        Array(option.instructions.enumerated()),
+                        id: \.offset
+                    ) { index, instruction in
+                        HStack(alignment: .top, spacing: 12) {
+                            Text("\(index + 1)")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.black)
+                                .frame(width: 26, height: 26)
+                                .background(RouteTheme.accent)
+                                .clipShape(Circle())
+
+                            Text(instruction)
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.vertical, 3)
+                    }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(RouteTheme.background)
+        .navigationTitle("Route Details")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
+        .toolbarBackground(RouteTheme.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .safeAreaInset(edge: .bottom) {
+            saveButton
+        }
+    }
+
+    private var routeMap: some View {
+        Map(initialPosition: mapPosition) {
+            if option.coordinates.count >= 2 {
+                MapPolyline(
+                    coordinates: option.coordinates.map(\.clCoordinate)
+                )
+                .stroke(RouteTheme.accent, lineWidth: 5)
+            }
+
+            if let start = option.startLocation {
+                Marker(
+                    option.routeType == .loop ? "Start / Finish" : "Start",
+                    coordinate: start.coordinate.clCoordinate
+                )
+                .tint(.green)
+            }
+
+            if option.routeType == .pointToPoint,
+               let finish = option.finishLocation {
+                Marker(
+                    "Finish",
+                    coordinate: finish.coordinate.clCoordinate
+                )
+                .tint(.red)
+            }
+        }
+        .mapStyle(.standard(
+            elevation: .flat,
+            emphasis: .muted,
+            pointsOfInterest: .excludingAll,
+            showsTraffic: false
+        ))
+        .environment(\.colorScheme, .dark)
+        .frame(height: 260)
+        .accessibilityLabel("Generated route map")
+    }
+
+    private var routeIdentity: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(option.title)
+                    .font(.headline)
+
+                Text(option.routeKindTitle)
+                    .font(.subheadline)
+                    .foregroundStyle(RouteTheme.secondaryText)
+            }
+
+            Spacer(minLength: 8)
+
+            Label(
+                option.routingModeUsed.title,
+                systemImage: option.routingModeUsed == .cycling
+                    ? "bicycle"
+                    : "car.fill"
             )
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(RouteTheme.accent)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(
-            RoundedRectangle(cornerRadius: 16)
-        )
     }
 
-    private var overviewCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(option.title)
-                .font(.headline)
-                .fontWeight(.semibold)
+    private var saveButton: some View {
+        let isSaved = savedRoutes.isSaved(option)
 
-            Text(option.overview)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineSpacing(3)
+        return Button {
+            savedRoutes.save(option)
+        } label: {
+            Label(
+                isSaved ? "Saved" : "Save Route",
+                systemImage: isSaved ? "bookmark.fill" : "bookmark"
+            )
+            .font(.headline)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 32)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
-        .clipShape(
-            RoundedRectangle(cornerRadius: 16)
-        )
-    }
-
-    private var actionButtons: some View {
-        VStack(spacing: 10) {
-            Button {
-            } label: {
-                Label("Navigate", systemImage: "paperplane.fill")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(accentColor)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: 14)
-                    )
-            }
-            .buttonStyle(.plain)
-
-            Button {
-            } label: {
-                Label("Save For Later", systemImage: "bookmark")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(secondaryButtonColor)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: 14)
-                    )
-            }
-            .buttonStyle(.plain)
-        }
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        .controlSize(.large)
+        .tint(.white)
+        .foregroundStyle(.black)
+        .disabled(isSaved)
         .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-        .background(Color(.systemGroupedBackground))
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial)
     }
 
-    private func statBlock(
-        title: String,
-        value: String
+    private func summaryRow(
+        _ title: String,
+        value: String,
+        icon: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.subheadline)
-                .foregroundStyle(.primary)
-
+        LabeledContent {
             Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundStyle(.primary)
+                .fontWeight(.semibold)
+        } label: {
+            Label(title, systemImage: icon)
         }
+    }
+
+    private var mapPosition: MapCameraPosition {
+        let coordinates = option.coordinates.map(\.clCoordinate)
+
+        guard coordinates.count >= 2 else {
+            if let coordinate = coordinates.first
+                ?? option.startLocation?.coordinate.clCoordinate {
+                return .camera(MapCamera(
+                    centerCoordinate: coordinate,
+                    distance: 2_000
+                ))
+            }
+            return .automatic
+        }
+
+        let polyline = MKPolyline(
+            coordinates: coordinates,
+            count: coordinates.count
+        )
+        let rect = polyline.boundingMapRect
+        let horizontalPadding = max(rect.size.width * 0.18, 1)
+        let verticalPadding = max(rect.size.height * 0.18, 1)
+        return .rect(rect.insetBy(
+            dx: -horizontalPadding,
+            dy: -verticalPadding
+        ))
+    }
+
+    private var gapText: String {
+        let prefix = option.distanceKm >= option.targetDistanceKm ? "+" : "-"
+        return "\(prefix)\(String(format: "%.1f", option.distanceGapKm)) km"
     }
 }
 
 #Preview {
-    RouteDetailView(
-        option: Route(
-            title: "Loop Route 15K",
-            distanceKm: 15.1,
-            durationMinutes: 34,
-            intersections: 10,
-            badgeTitle: "Closest to Target Distance",
-            routeKindTitle: "Loop Route",
-            warningMessage: "Cycling road data is not available in your region",
-            currentWeather: "26°C",
-            windSpeed: "13 km/h",
-            overview: "A balanced route option that stays close to your target distance while keeping the path simple for a first preview."
-        )
-    )
+    NavigationStack {
+        RouteDetailView(option: .preview)
+    }
+    .environment(SavedRoutesController.preview)
+    .preferredColorScheme(.dark)
 }

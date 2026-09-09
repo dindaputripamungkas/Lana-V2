@@ -5,9 +5,6 @@
 
 @MainActor
 protocol LocationProviding {
-    func requestCurrentLocation(
-        completion: @escaping (Result<RouteLocation, Error>) -> Void
-    )
-
+    func requestCurrentLocation() async throws -> RouteLocation
     func cancel()
 }

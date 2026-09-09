@@ -16,36 +16,35 @@ struct RouteTypeCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            HStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(.body.weight(.semibold))
 
                 Text(title)
                     .font(.headline)
-
-                Text(description)
-                    .font(.subheadline)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 110)
-            .padding(.horizontal, 8)
-            .background(.white)
-            .clipShape(
-                RoundedRectangle(cornerRadius: 16)
+            .foregroundStyle(
+                isSelected ? Color.black : RouteTheme.primaryText
             )
+            .frame(maxWidth: .infinity)
+            .frame(height: 52)
+            .padding(.horizontal, 12)
+            .background(
+                isSelected ? RouteTheme.accent : RouteTheme.surface
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay {
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(
                         isSelected
-                            ? Color(red: 0.59, green: 0.29, blue: 0.28)
-                            : .clear,
-                        lineWidth: 2
+                            ? Color.black.opacity(0.18)
+                            : RouteTheme.border,
+                        lineWidth: 1
                     )
             }
         }
         .buttonStyle(.plain)
+        .accessibilityHint(description)
     }
 }
 
@@ -68,7 +67,6 @@ struct RouteTypeCard: View {
         )
     }
     .padding()
-    .background(
-        Color(.systemGroupedBackground)
-    )
+    .background(RouteTheme.background)
+    .preferredColorScheme(.dark)
 }

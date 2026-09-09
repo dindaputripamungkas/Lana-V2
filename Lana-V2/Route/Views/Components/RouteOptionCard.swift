@@ -11,66 +11,84 @@ struct RouteOptionCard: View {
     let option: Route
     let action: () -> Void
 
-    private let accentColor = Color(red: 0.59, green: 0.29, blue: 0.28)
-
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 12) {
-                    Text(option.title)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.leading)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(option.title)
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(RouteTheme.primaryText)
+
+                        Label(
+                            option.routingModeUsed.title,
+                            systemImage: option.routingModeUsed == .cycling
+                                ? "bicycle"
+                                : "car.fill"
+                        )
+                        .font(.caption)
+                        .foregroundStyle(RouteTheme.accent)
+                    }
 
                     Spacer(minLength: 8)
 
                     if let badgeTitle = option.badgeTitle {
                         Text(badgeTitle)
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.black)
                             .lineLimit(1)
-                            .padding(.horizontal, 10)
+                            .padding(.horizontal, 9)
                             .padding(.vertical, 5)
-                            .background(accentColor)
+                            .background(RouteTheme.accent)
                             .clipShape(Capsule())
                     }
+
+                    Image(systemName: "chevron.forward")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(RouteTheme.secondaryText)
                 }
 
-                Text("\(option.distanceKm, specifier: "%.1f") km | \(option.durationMinutes) mins | \(option.intersections) Intersections")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(accentColor)
-                    .lineLimit(2)
+                HStack(spacing: 16) {
+                    metric(
+                        icon: "ruler",
+                        value: String(format: "%.1f km", option.distanceKm)
+                    )
+                    metric(icon: "clock", value: option.durationText)
+                    metric(
+                        icon: "arrow.turn.up.right",
+                        value: "\(option.intersections) turns"
+                    )
+                }
+
+                HStack(spacing: 6) {
+                    Image(systemName: "scope")
+                    Text(
+                        "Target \(option.targetDistanceKm, specifier: "%.1f") km, gap \(option.distanceGapKm, specifier: "%.1f") km"
+                    )
+                }
+                .font(.caption)
+                .foregroundStyle(RouteTheme.accent)
             }
-            .padding(18)
+            .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white)
-            .clipShape(
-                RoundedRectangle(cornerRadius: 16)
-            )
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private func metric(icon: String, value: String) -> some View {
+        Label(value, systemImage: icon)
+            .font(.caption)
+            .foregroundStyle(RouteTheme.secondaryText)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
     }
 }
 
 #Preview {
-    RouteOptionCard(
-        option: Route(
-            title: "Loop Route 15K",
-            distanceKm: 15.1,
-            durationMinutes: 34,
-            intersections: 10,
-            badgeTitle: "Closest to Target Distance",
-            routeKindTitle: "Loop Route",
-            warningMessage: "Cycling road data is not available in your region",
-            currentWeather: "26°C",
-            windSpeed: "13 km/h",
-            overview: "A balanced route option for preview."
-        ),
-        action: {}
-    )
-    .padding()
-    .background(Color(.systemGroupedBackground))
+    RouteOptionCard(option: .preview, action: {})
+        .padding()
+        .background(RouteTheme.background)
+        .preferredColorScheme(.dark)
 }

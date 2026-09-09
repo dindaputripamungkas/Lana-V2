@@ -2,14 +2,12 @@
 //  RouteGenerating.swift
 //  Lana-V2
 //
-//  Created by Imam on 01/09/26.
-//
 
+@MainActor
 protocol RouteGenerating {
-    func generateOptions(
-        targetDistanceKm: Double,
-        routeType: RouteType,
-        startLocation: String?,
-        finishLocation: String?
-    ) -> [Route]
+    func generateBestRoutes(
+        for request: RouteGenerationRequest
+    ) async throws -> [Route]
+
+    func cancel()
 }

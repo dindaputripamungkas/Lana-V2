@@ -2,11 +2,14 @@ import SwiftUI
 
 struct RouteInputField: View {
     @Binding var text: String
+    var showsTitle = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Target Distance")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 10) {
+            if showsTitle {
+                Text("Target Distance")
+                    .font(.headline)
+            }
 
             HStack {
                 TextField(
@@ -14,18 +17,19 @@ struct RouteInputField: View {
                     text: $text
                 )
                 .keyboardType(.decimalPad)
+                .foregroundStyle(RouteTheme.primaryText)
+                .tint(RouteTheme.accent)
 
                 Spacer()
 
                 Text("km")
                     .fontWeight(.semibold)
+                    .foregroundStyle(RouteTheme.secondaryText)
             }
             .padding(.horizontal, 16)
             .frame(height: 48)
-            .background(.white)
-            .clipShape(
-                RoundedRectangle(cornerRadius: 14)
-            )
+            .background(RouteTheme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 }
@@ -37,7 +41,6 @@ struct RouteInputField: View {
         text: $text
     )
     .padding()
-    .background(
-        Color(.systemGroupedBackground)
-    )
+    .background(RouteTheme.background)
+    .preferredColorScheme(.dark)
 }
