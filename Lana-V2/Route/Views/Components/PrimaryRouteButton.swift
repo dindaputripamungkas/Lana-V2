@@ -8,22 +8,19 @@
 import SwiftUI
 
 struct PrimaryRouteButton: View {
-    let title: String
     let isEnabled: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title)
+            Text("Create Route")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(
-                    Color(.secondarySystemBackground)
-                )
+                .frame(height: 50)
+                .background(.gray)
                 .clipShape(
-                    RoundedRectangle(cornerRadius: 14)
+                    RoundedRectangle(cornerRadius: 20)
                 )
         }
         .buttonStyle(.plain)
@@ -35,13 +32,11 @@ struct PrimaryRouteButton: View {
 #Preview {
     VStack(spacing: 20) {
         PrimaryRouteButton(
-            title: "Create Route",
             isEnabled: true,
             action: {}
         )
 
         PrimaryRouteButton(
-            title: "Create Route",
             isEnabled: false,
             action: {}
         )

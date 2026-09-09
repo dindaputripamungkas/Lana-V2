@@ -10,18 +10,18 @@ import SwiftUI
 struct WaypointInputView: View {
     @Binding var startLocation: String
     @Binding var finishLocation: String
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Waypoints")
                 .font(.headline)
-
+            
             locationField(
                 icon: "circle.fill",
                 placeholder: "Start from...",
                 text: $startLocation
             )
-
+            
             locationField(
                 icon: "mappin.circle.fill",
                 placeholder: "Finish at...",
@@ -29,7 +29,7 @@ struct WaypointInputView: View {
             )
         }
     }
-
+    
     private func locationField(
         icon: String,
         placeholder: String,
@@ -38,7 +38,7 @@ struct WaypointInputView: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 12))
-
+            
             TextField(
                 placeholder,
                 text: text
@@ -51,12 +51,12 @@ struct WaypointInputView: View {
             RoundedRectangle(cornerRadius: 14)
         )
     }
-    }
+}
 
 #Preview {
     @Previewable @State var startLocation = ""
     @Previewable @State var finishLocation = ""
-
+    
     WaypointInputView(
         startLocation: $startLocation,
         finishLocation: $finishLocation

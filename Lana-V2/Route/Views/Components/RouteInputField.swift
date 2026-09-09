@@ -5,12 +5,9 @@ struct RouteInputField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Target Distance")
-                .font(.headline)
-
             HStack {
                 TextField(
-                    "20",
+                    "Target Distance",
                     text: $text
                 )
                 .keyboardType(.decimalPad)
@@ -18,10 +15,10 @@ struct RouteInputField: View {
                 Spacer()
 
                 Text("km")
-                    .fontWeight(.semibold)
+                    .font(.subheadline)
             }
-            .padding(.horizontal, 16)
-            .frame(height: 48)
+            .padding()
+            .frame(height: 50)
             .background(.white)
             .clipShape(
                 RoundedRectangle(cornerRadius: 14)

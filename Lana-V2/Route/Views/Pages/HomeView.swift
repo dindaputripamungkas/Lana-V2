@@ -44,11 +44,8 @@ struct HomeView: View {
                     }
 
                     PrimaryRouteButton(
-                        title: "Create Route",
-                        isEnabled: true,
-                        action: {
-                            viewModel.generateOptions()
-                        }
+                        isEnabled: false,
+                        action: {}
                     )
 
                     

@@ -12,16 +12,12 @@ struct RouteDetailView: View {
 
     let option: Route
 
-    private let accentColor = Color(red: 0.59, green: 0.29, blue: 0.28)
-    private let secondaryButtonColor = Color(red: 0.80, green: 0.58, blue: 0.58)
-
     var body: some View {
         ZStack {
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                headerView
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
@@ -38,37 +34,13 @@ struct RouteDetailView: View {
                 actionButtons
             }
         }
-        .navigationBarBackButtonHidden(true)
-    }
-
-    private var headerView: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .frame(width: 40, height: 40)
-                    .background(.white)
-                    .clipShape(Circle())
+        .toolbar{
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Close") {
+                    dismiss()
+                }
             }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            Text("Route Details")
-                .font(.headline)
-                .fontWeight(.semibold)
-
-            Spacer()
-
-            Color.clear
-                .frame(width: 40, height: 40)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
     }
 
     private var routeStatusView: some View {
@@ -83,10 +55,10 @@ struct RouteDetailView: View {
             Label(option.routeKindTitle, systemImage: "arrow.triangle.2.circlepath")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(accentColor)
+                .background(.white)
                 .clipShape(Capsule())
         }
     }
@@ -130,7 +102,7 @@ struct RouteDetailView: View {
                 Label(option.currentWeather, systemImage: "cloud.sun.fill")
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundStyle(accentColor)
+                    .foregroundStyle(.primary)
             }
 
             Spacer()
@@ -173,10 +145,10 @@ struct RouteDetailView: View {
             } label: {
                 Label("Navigate", systemImage: "paperplane.fill")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(accentColor)
+                    .background(.white)
                     .clipShape(
                         RoundedRectangle(cornerRadius: 14)
                     )
@@ -187,10 +159,10 @@ struct RouteDetailView: View {
             } label: {
                 Label("Save For Later", systemImage: "bookmark")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(secondaryButtonColor)
+                    .background(.white)
                     .clipShape(
                         RoundedRectangle(cornerRadius: 14)
                     )

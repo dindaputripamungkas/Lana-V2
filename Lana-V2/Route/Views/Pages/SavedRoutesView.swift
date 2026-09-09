@@ -15,7 +15,8 @@ struct SavedRoutesView: View {
             Picker("Option", selection: $controller.selectedOption){
                 Text("All").tag(0)
                 Text("Favorites").tag(1)
-            }.pickerStyle(.segmented)
+            }
+            .pickerStyle(.segmented)
             
             if controller.filteredRoutes.isEmpty {
                 if !controller.searchText.isEmpty {
@@ -46,7 +47,6 @@ struct SavedRoutesView: View {
                                 )
                             }
                             .buttonStyle(.plain)
-
                         }
 
                     }
@@ -54,9 +54,9 @@ struct SavedRoutesView: View {
             }
             
         }
+        .padding()
         .navigationTitle(Text("Saved Routes"))
         .navigationBarTitleDisplayMode(.inline)
-        .padding()
         .searchable(text: $controller.searchText,
                     prompt: "Search routes...")
         

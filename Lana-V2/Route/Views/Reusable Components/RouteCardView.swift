@@ -11,12 +11,10 @@ import MapKit
 struct RouteCardView: View {
     let route: Route
     
-    // Mode & Accessory Flags
     var showFavoriteButton: Bool = false
     var showBadge: Bool = true
     var showMapPreview: Bool = true
     
-    // Callbacks
     var onFavoriteToggle: (() -> Void)? = nil
     var onSelect: (() -> Void)? = nil
 
@@ -33,12 +31,10 @@ struct RouteCardView: View {
 
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // 1. Dummy Map Preview Header
             if showMapPreview {
                 dummyMapHeader
             }
 
-            // 2. Title + Accessory (Badge or Favorite Button)
             HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(route.title)
@@ -64,7 +60,7 @@ struct RouteCardView: View {
                     Text(badgeTitle)
                         .font(.caption2)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(.black)
@@ -78,7 +74,6 @@ struct RouteCardView: View {
         .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
     }
 
-    // Stats line (handles optional intersections cleanly)
     private var statsSubtitle: some View {
         var items: [String] = [
             String(format: "%.1f km", route.distanceKm),
@@ -94,23 +89,20 @@ struct RouteCardView: View {
             .foregroundStyle(.primary)
     }
 
-    // Dummy Map View
     private var dummyMapHeader: some View {
-        // Dummy region (e.g. Cupertino or user default)
         let dummyPosition = MapCameraPosition.region(
             MKCoordinateRegion(
-                center: CLLocationCoordinate2D(latitude: -6.2088, longitude: 106.8456), // Jakarta / Dummy center
+                center: CLLocationCoordinate2D(latitude: -6.2088, longitude: 106.8456),
                 span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
             )
         )
 
         return Map(initialPosition: dummyPosition) {
-            // Optional: UserAnnotation or dummy Marker
             Marker("Start", coordinate: CLLocationCoordinate2D(latitude: -6.2088, longitude: 106.8456))
         }
         .frame(height: 120)
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .allowsHitTesting(false) // Best practice: disable gestures inside scrollable list card
+        .allowsHitTesting(false)
     }
 }
 

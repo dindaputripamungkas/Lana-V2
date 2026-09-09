@@ -26,7 +26,6 @@ struct RouteTypeCard: View {
                 Text(description)
                     .font(.subheadline)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 110)
@@ -39,8 +38,8 @@ struct RouteTypeCard: View {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(
                         isSelected
-                            ? Color(red: 0.59, green: 0.29, blue: 0.28)
-                            : .clear,
+                        ? Color(.black)
+                        : .gray,
                         lineWidth: 2
                     )
             }
