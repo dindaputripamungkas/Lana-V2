@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct Lana_V2App: App {
-    @State private var savedRoutes = SavedRoutesController()
+    @State private var savedRoutes = SavedRoutesViewModel()
 
     var body: some Scene {
         WindowGroup {
